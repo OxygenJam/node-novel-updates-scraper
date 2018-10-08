@@ -1,0 +1,20 @@
+{
+  "name": "node-novel-updates-scraper",
+  "version": "0.1.4",
+  "description": "Compiles chapters from Novel Updates to a PDF format",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "keywords": ["LN","Light-Novel","Weeb","Anime","Manga","Web-scraping"],
+  "author": "OxygenJam",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "cheerio": "^1.0.0-rc.2",
+    "pdfkit": "^0.8.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
+  }
+}
