@@ -4,9 +4,9 @@
  * 
  * -Zird Triztan Driz
  */
-const pretty = require('./prettyPrint.js');
-const scrape = require("./webScraping.js");
-const errDict = require("./errorDict.js");
+const pretty = require('./local/prettyPrint');
+const scrape = require("./local/webScraping.js");
+const errDict = require("./local/errorDict.js");
 
 //Core package dependencies
 const cheerio = require("cheerio");
