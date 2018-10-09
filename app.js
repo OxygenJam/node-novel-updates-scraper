@@ -61,7 +61,7 @@ function main(){
     return new Promise((resolve,reject)=>{
 
         // Load main HTML webpage of Novel Updates page of novel OwO
-        scrape.retrieveHTML("http://google.com")
+        scrape.retrieveHTML("http://google", 3)
             .then(function(body){
                 pretty.logPrint("HTML BODY:\n")
                 console.log(body);
@@ -71,8 +71,8 @@ function main(){
             })
             .catch(function(err){
 
-                errDict.getError(3);
-                reject(3);
+                errDict.getError(err);
+                reject(err);
             })
 
     })
@@ -83,7 +83,9 @@ if(typeof module != 'undefined' && !module.parent){
 
     async function start(){
         start = new Date();
-        code = await main()
+        code = await main().catch((err)=>{
+            return err;
+        })
 
         if(code == 0){
             pretty.logWrite("Application ran with ");

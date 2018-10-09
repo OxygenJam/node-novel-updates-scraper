@@ -16,7 +16,7 @@ var exports = module.exports = {};
 exports.logPrint = function(word){
     d = new Date();
     d = d.toISOString();
-    console.log(chalk.green(d + " >>> ") + word);
+    console.log(chalk.green(d + " >>>  ") + word);
 }
 
 /**
@@ -27,7 +27,7 @@ exports.logPrint = function(word){
 exports.logWrite = function(word){
     d = new Date();
     d = d.toISOString();
-    process.stdout.write(chalk.green(d + " >>> ") + word + " ");
+    process.stdout.write(chalk.green(d + " >>>  ") + word + " ");
 }
 
 /**
