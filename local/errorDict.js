@@ -13,7 +13,10 @@ const errDict = {
     10 : "An error occured while retrieving novel chapter link.",
     11 : "Exhausted retries in retrieving novel chapter link.",
     12 : "An error occured while retrieving chapter table max page link.",
-    13 : "Exhausted retries in retrieving chapter table max page link."
+    13 : "Exhausted retries in retrieving chapter table max page link.",
+    14 : "An error occured while retrieving chapter table max rows link.",
+    15 : "Exhausted retries in retrieving chapter table max rows link.",
+    16 : "Invalid novel JSON format, must have a novel_name and novel_link"
 }
 
 var exports = module.exports;
