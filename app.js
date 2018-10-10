@@ -4,7 +4,7 @@
  * 
  * -Zird Triztan Driz
  */
-const pretty = require('./local/prettyPrint');
+const pretty = require("./local/prettyPrint");
 const scrape = require("./local/webScraping.js");
 const errDict = require("./local/errorDict.js");
 
@@ -22,12 +22,13 @@ var novel_metadata = null;
  * 
  * @param {Array} args This is the list of sys.args from running the program
  * 
- * @returns exit code of 0 or 1
+ * @returns exit code of novel metadata or non-zero exit code
  */
 function isSyntaxCorrect(args){
 
+    args = args.slice(2);
     // If no arguments
-    if(args.slice(2).length == 0){
+    if(args.length == 0){
         return 1;
     }
 
@@ -36,10 +37,20 @@ function isSyntaxCorrect(args){
 
     // Load JSON file
     try{
-        novel_metadata = require('./novels/' + filename);
-        return 0;
-    }catch(e){
-        return 0;
+
+        let novel_metadata = require('./novels/' + filename);
+        
+        // Check if JSON file is in correct format
+        if(!novel_metadata.novel_name && !novel.novel_link){
+            return 16;
+        }
+
+        return novel_metadata;
+        
+    }catch(err){
+
+        errDict.customError(err);
+        return 2;
     }
 }
 
@@ -51,25 +62,27 @@ function isSyntaxCorrect(args){
 function main(){
 
     // Check for any arguments or syntax errors
-    if(isSyntaxCorrect(process.argv) != 0){
-        code = isSyntaxCorrect(process.argv);
+    const novel_metadata = isSyntaxCorrect(process.argv);
 
-        errDict.getError(code);
-        return code
+    if(! isNaN(novel_metadata)){
+
+        return Promise.reject(novel_metadata);
     }
+
+
+    // Default CSS selectors are stored in the default.json
+    const selectors = require("./static/default.json");
 
     return new Promise((resolve,reject)=>{
 
         // Load main HTML webpage of Novel Updates page of novel OwO
-        scrape.retrieveHTML("http://google", 3)
-            .then(function(body){
-                pretty.logPrint("HTML BODY:\n")
-                console.log(body);
+        scrape.retrieveHTML(novel_metadata.novel_link, 3)
+            .then((body)=>{
 
                 resolve(0);
 
             })
-            .catch(function(err){
+            .catch((err)=>{
 
                 errDict.getError(err);
                 reject(err);
@@ -94,6 +107,8 @@ if(typeof module != 'undefined' && !module.parent){
         else{
             pretty.logWrite("Application ran with ");
             pretty.cPrint("ERROR CODE " + code.toString(), "r");
+
+            errDict.getError(code);
         }
 
         // Elapsed time
