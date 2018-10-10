@@ -1,0 +1,9 @@
+{
+    "novel_image":".seriesimg img",
+    "novel_translator":"#myTable tbody tr td:nth-child(2)",
+    "novel_chapter":"#myTable tbody tr td:nth-child(3) a",
+    "novel_table": {
+        "pages":".digg_pagination a:nth-child(5)",
+        "rows":"#myTable tbody tr"
+    }
+}
