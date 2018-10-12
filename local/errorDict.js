@@ -16,7 +16,10 @@ const errDict = {
     13 : "Exhausted retries in retrieving chapter table max page link.",
     14 : "An error occured while retrieving chapter table max rows link.",
     15 : "Exhausted retries in retrieving chapter table max rows link.",
-    16 : "Invalid novel JSON format, must have a novel_name and novel_link"
+    16 : "Invalid novel JSON format, must have a novel_name and novel_link",
+    17 : "groups.JSON in folder static is missing! Please find and put it back where it belongs!",
+    18 : "Can't find group in the groups.JSON; provide an individual JSON file for that group, then add it to groups.JSON",
+    19 : "Tried retrieving the group's JSON data, but an error occured, either it doesn't exist or location is wrong"
 }
 
 var exports = module.exports;

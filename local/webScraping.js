@@ -18,10 +18,16 @@ var exports = module.exports;
  */
 exports.retrieveHTML = function(link, retries){
 
-    pretty.logPrint("Retrieving HTML Document...");
+    pretty.logWrite("Retrieving HTML document from");
+    pretty.cPrint(`${link}`,"b");
 
     // Valid Novel Updates novel page link must be passed
-    return request(link).catch((error)=>{
+    return request(link).then((body)=>{
+
+        pretty.logPrint("Successfully retrieved HTML document.")
+
+        return body;
+    }).catch((error)=>{
 
         if(retries > 0){
 
@@ -57,16 +63,18 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
 
     const max_page = retrieveNovelChapterTableMaxPage(HTML, novel_table.pages, 3);
 
+    var chapterList = []
+
     pretty.logPrint("Retrieving Novel Chapters...")
     
     // Iterate through all the pages in the Novel Page Chapter Table
     for(page = max_page; page > 0; page--){
 
+        pretty.logWrite("Current Chapter Table Page: ");
+        pretty.cPrint(`${page}`,"b");
+
         // Set proper GET URL for table pagination based on current iteration
         let pageLink = `${link}?pg=${page}`;
-
-        pretty.logWrite("Current Chapter Table Page: ");
-        pretty.cPrint(String(page),"b");
 
         // Retrieve the HTML body of that table page
         let pageBody = await exports.retrieveHTML(pageLink, 3);
@@ -86,10 +94,16 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
 
             let chapterBody = await exports.retrieveHTML(link, 3);
 
+            translator = findGroupFromExistingGroups(translator);
+
+            if(!isNaN(translator)){
+
+                // When an error occured in the function, the error code, a number, is returned
+                return Promise.reject(translator)
+            }
+
 
         }
-
-
 
 
     }
@@ -119,7 +133,7 @@ function retrieveNovelImage(HTML, selector, retries){
     try{
 
         // Image CSS selector for novel image goes here
-        image = $(selector).attr('src');
+        let image = $(selector).attr('src');
 
         pretty.logPrint("Sucessfully retrieved novel cover image.");
         return image;
@@ -157,10 +171,14 @@ function retrieveNovelChapterTableMaxPage (HTML, selector, retries){
     pretty.logPrint("Retrieving chapter table max page...");
 
     try{
+        
+        // Last index is always the -> button, if it does not exist, default to 0
+        let page_length = ($(selector).get().length) - 2;
 
-        // Get the 5th child element or 3rd anchor child element from class
-        // digg_pagination in the table; it's usually where the max page is located.
-        last_page = $(selector).text();
+        page_length = page_length < 0 ? 0 : page_length
+
+        // Last page is usually the last anchor tag before the ->
+        let last_page = $(selector).get(page_length).text();
 
         pretty.logPrint("Sucessfully retrieved chapter table max page.");
         return parseInt(last_page);
@@ -199,7 +217,7 @@ function retrieveNovelChapterTableMaxRow(HTML, selector, retries){
 
         // Get the 5th child element or 3rd anchor child element from class
         // digg_pagination in the table; it's usually where the max page is located.
-        rows = $(selector).get().length;
+        let rows = $(selector).get().length;
 
         return parseInt(rows);
     }catch(err){
@@ -241,7 +259,7 @@ function retrieveNovelScanlationGroup(HTML, selector, row, retries){
 
         // Get the 2nd TD element from each TR in the table; it's usually 
         // where the translation group column is located.
-        group = $(selector).get(row).text();
+        let group = $(selector).get(row).text();
 
         return group;
     }catch(err){
@@ -280,11 +298,10 @@ function retrieveNovelChapterLink(HTML, selector, row, retries){
 
         // Get the 3rd TD element from each TR in the table; it's usually 
         // where the chapter link is located.
-        chapter_link = $(selector).get(row).attr("href");
+        let chapter_link = $(selector).get(row).attr("href");
 
         // Get Chapter number (e.g. v1c1)
-        chapter_number = String($(selector).get(row).text());
-        chapter_number = chapter_name.split("c")[1];
+        let chapter_number = String($(selector).get(row).text());
 
         return { chapter: chapter_number, link: chapter_link };
     }catch(err){
@@ -305,3 +322,70 @@ function retrieveNovelChapterLink(HTML, selector, row, retries){
 }
 
 // ================================================ //
+
+// ==================CHAPTER PAGE================== //
+
+/**
+ * 
+ * @param {String} HTML This is the HTML body of the chapter in the group's website
+ * @param {Object} group_meta The meta data to be used for CSS scraping the chapter
+ * @param {Number} retries This is the maximum number of retries till error gets thrown
+ * 
+ * 
+ */
+function retrieveChapterData(HTML, group_meta, retries){
+
+}
+
+/**
+ * Observes and retrieves the appropriate location of the group's local JSON data
+ * 
+ * @param {String} groupname The name of the group translator
+ * 
+ * @returns returns the URL of the group JSON data
+ */
+function findGroupFromExistingGroups(groupname){
+
+    try{
+        const { groups } = require('../static/groups.json');
+    }
+    catch(err){
+
+        errDict.customError(err);
+
+    }
+    
+
+    const names = groups.map( (group) => { return group["name"] });
+    const links = groups.map( (group) => { return group["filename"]});
+
+    if(names.indexOf(groupname) == -1){
+
+        return 18;
+    }
+
+    return retrieveGroupMetaData(links[names.indexOf(groupname)]);
+
+}
+
+/**
+ * Finds, loads, and retrieves the group's JSON data.
+ * 
+ * @param {String} link This is the location of the JSON data of the group
+ * 
+ * @returns The JSON data of the group 
+ */
+function retrieveGroupMetaData(link){
+
+    try{
+
+        const meta = require(link);
+    }
+    catch(err){
+
+        errDict.customError(err);
+        return 19;
+    }
+
+    return meta;
+}
