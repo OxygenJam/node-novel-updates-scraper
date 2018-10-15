@@ -30,7 +30,8 @@ const errDict = {
     21 : "Chapter already exists in the current list; skipping...",
     22 : "Group translator of the chapter is in the list of groups to ignore; skipping...",
     23 : "An error occured in the compilation of the Novel Cover Page into a PDF.",
-    24 : "An error occured in the compilation of the chapters into a PDF."
+    24 : "An error occured in the compilation of the chapters into a PDF.",
+    25 : "An error occured in retrieving the image; Will use default image available"
 }
 
 var exports = module.exports;

@@ -82,7 +82,7 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
     // CSS selector destructuring
 
     // Novel Metadata
-    const { groups_to_ignore } = novel_meta;
+    const { novel_link, groups_to_ignore } = novel_meta;
 
     // Novel Updates Selectors
     const { novel_translator, novel_chapter, novel_table } = settings;
@@ -103,7 +103,7 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
         pretty.cPrint(`${page}`,"b");
 
         // Set proper GET URL for table pagination based on current iteration
-        let pageLink = `${link}?pg=${page}`;
+        let pageLink = `${novel_link}?pg=${page}`;
 
         // Retrieve the HTML body of that table page
         let pageBody = await exports.retrieveHTML(pageLink, 3);
@@ -151,11 +151,10 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
 
             // Store object containing chapter and paragraphs in an array list
             chapterList = [...chapterList, {chapter, paragraphs}];
-
+            
         }
-
     }
-
+    
     pretty.logPrint("Finished retrieving Novel Chapters.");
     return chapterList;
     
@@ -225,11 +224,10 @@ function retrieveNovelChapterTableMaxPage (HTML, selector, retries){
         
         // Last index is always the -> button, if it does not exist, default to 0
         let page_length = ($(selector).get().length) - 2;
-
         page_length = page_length < 0 ? 0 : page_length
 
         // Last page is usually the last anchor tag before the ->
-        let last_page = $(selector).get(page_length);
+        let last_page = $($(selector).get(page_length)).text();
 
         pretty.logPrint("Sucessfully retrieved chapter table max page.");
         return parseInt(last_page);
@@ -310,7 +308,7 @@ function retrieveNovelScanlationGroup(HTML, selector, row, retries){
 
         // Get the 2nd TD element from each TR in the table; it's usually 
         // where the translation group column is located.
-        let group = $(selector).get(row).text();
+        let group = $($(selector).get(row)).text();
 
         return group;
     }catch(err){
@@ -349,10 +347,14 @@ function retrieveNovelChapterLink(HTML, selector, row, retries){
 
         // Get the 3rd TD element from each TR in the table; it's usually 
         // where the chapter link is located.
-        let chapter_link = $(selector).get(row).attr("href");
+        let chapter_link = $($(selector).get(row)).attr("href");
+
+        // Current implementation of hyperlinking in Novel Updates are // in before url
+        // This will replace it, delete this when implementation changes
+        chapter_link = chapter_link.replace("//www","https://www");
 
         // Get Chapter number (e.g. v1c1)
-        let chapter_number = String($(selector).get(row).text());
+        let chapter_number = String($($(selector).get(row)).text());
 
         return { chapter: chapter_number, link: chapter_link };
     }catch(err){
@@ -417,6 +419,16 @@ function findGroupFromExistingGroups(groupname){
 
     try{
         const { groups } = require('../static/groups.json');
+
+        const names = groups.map( (group) => { return group["name"] });
+        const links = groups.map( (group) => { return group["filename"]});
+
+        if(names.indexOf(groupname) == -1){
+
+            return 18;
+        }
+
+        return retrieveGroupMetaData(links[names.indexOf(groupname)]);
     }
     catch(err){
 
@@ -424,17 +436,6 @@ function findGroupFromExistingGroups(groupname){
 
     }
     
-
-    const names = groups.map( (group) => { return group["name"] });
-    const links = groups.map( (group) => { return group["filename"]});
-
-    if(names.indexOf(groupname) == -1){
-
-        return 18;
-    }
-
-    return retrieveGroupMetaData(links[names.indexOf(groupname)]);
-
 }
 
 /**
