@@ -7,6 +7,7 @@
 const pretty = require("./local/prettyPrint");
 const scrape = require("./local/webScraping.js");
 const errDict = require("./local/errorDict.js");
+const pdfCompile = require('./local/pdfCompile.js');
 
 //Core package dependencies
 const cheerio = require("cheerio");
@@ -62,22 +63,43 @@ function isSyntaxCorrect(args){
 function main(){
 
     // Check for any arguments or syntax errors
-    const novel_metadata = isSyntaxCorrect(process.argv);
+    const novelMeta = isSyntaxCorrect(process.argv);
 
-    if(! isNaN(novel_metadata)){
+    if(! isNaN(novelMeta)){
 
-        return Promise.reject(novel_metadata);
+        return Promise.reject(novelMeta);
     }
 
 
     // Default CSS selectors are stored in the default.json
     const selectors = require("./static/default.json");
+    const { output_directory } = selectors;
+    const { novel_link } = novelMeta;
 
     return new Promise((resolve,reject)=>{
 
         // Load main HTML webpage of Novel Updates page of novel OwO
-        scrape.retrieveHTML(novel_metadata.novel_link, 3)
-            .then((body)=>{
+        scrape.retrieveHTML(novel_link, 3)
+            .then(async (body)=>{
+
+                // Scraping Section
+                novelHeader = scrape.retrieveNovelHeaders(body, novelMeta, selectors);
+                chapters = await scrape.retrieveNovelChapters(body, novelMeta, selectors);
+
+                pretty.lineBreak();
+                // PDF Section
+                let pdf = new pdfCompile.PDFModule(output_directory);
+
+                try{
+                    pretty.logPrint("Compiling your Novel into a PDF format...");
+                    pretty.logPrint()
+                    pdf.compileCoverPage(novelHeader);
+                    pdf.compileNovelPages(chapters);
+                }
+                catch(err){
+                    
+                    reject(err);
+                }
 
                 resolve(0);
 

@@ -1,18 +1,29 @@
 {
   "name": "node-novel-updates-scraper",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Compiles chapters from Novel Updates to a PDF format",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node app.js common_sense_of_a_dukes_daughter"
   },
-  "keywords": ["LN","Light-Novel","Weeb","Anime","Manga","Web-scraping"],
+  "keywords": [
+    "LN",
+    "Light-Novel",
+    "Weeb",
+    "Anime",
+    "Manga",
+    "Web-scraping",
+    "Novel Updates",
+    "Novels",
+    "Baka Tsuki"
+  ],
   "author": "OxygenJam",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "chalk": "^2.4.1",
     "cheerio": "^1.0.0-rc.2",
+    "fs": "0.0.1-security",
     "pdfkit": "^0.8.3",
     "request": "^2.88.0",
     "request-promise": "^4.2.2"
