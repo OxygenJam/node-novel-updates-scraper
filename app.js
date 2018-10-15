@@ -93,7 +93,7 @@ function main(){
                 try{
                     pretty.logPrint("Compiling your Novel into a PDF format...");
                     pretty.logPrint()
-                    pdf.compileCoverPage(novelHeader);
+                    await pdf.compileCoverPage(novelHeader);
                     pdf.compileNovelPages(chapters);
                 }
                 catch(err){

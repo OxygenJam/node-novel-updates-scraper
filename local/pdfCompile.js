@@ -9,6 +9,7 @@ const errDict = require('./errorDict.js');
 const pretty = require('./prettyPrint.js');
 
 const fs = require('fs');
+const request = require('request-promise');
 
 var exports = module.exports = {};
 
@@ -32,7 +33,7 @@ exports.PDFModule = class PDFModule{
      * 
      * @throws The an error code when an exception occurs 
      */
-    compileCoverPage(novelData){
+    async compileCoverPage(novelData){
 
         const {name, cover, author} = novelData;
         const myRepos = "https://github.com/OxygenJam/node-novel-updates-scraper";
@@ -61,8 +62,8 @@ exports.PDFModule = class PDFModule{
                 .text('PDFkit', {link:pdfkitLink, align:'center', underline: true})
                 .fillColor('black')
                 .moveDown();
-            
-            this.doc.image(cover)
+
+            this.doc.image(await bufferImageFromURL(cover))
                 .moveDown();
 
                 pretty.logPrint("Nover cover page done.");
@@ -90,7 +91,7 @@ exports.PDFModule = class PDFModule{
             pretty.logPrint("Compiling novel contents...");
             // Iterate through the list of chapters where c is the chapters
             // and the p is your paragraph, this has a time complexity of O(c*p)
-            for(c = 0; c<chapterlist.length; c++){
+            for(var c = 0; c<chapterlist.length; c++){
 
                 let { chapter, paragraphs } = chapterlist[c];
 
@@ -99,7 +100,7 @@ exports.PDFModule = class PDFModule{
                     .text(chapter, 100, 100)
                     .moveDown();
 
-                for(p=0; p<paragraphs; p++){
+                for(var p=0; p<paragraphs; p++){
 
                     this.doc.fontSize(12)
                         .text(paragraphs[p])
@@ -149,3 +150,23 @@ function formatNovelName(name){
     return name.toLowerCase();
 }
 
+/**
+ * This loads the novel image cover as a buffer for input in PDFkit
+ * 
+ * @param {String} imageurl This is the image url for the cover image of the novel
+ * 
+ * @returns The buffer of the image data, else null
+ */
+async function bufferImageFromURL(imageurl){
+
+    return request({
+        url:imageurl,
+        encoding: null
+
+    }).catch((err)=>{
+
+        errDict.customError(err);
+        errDict.getError(25);
+        return null;
+    });
+}

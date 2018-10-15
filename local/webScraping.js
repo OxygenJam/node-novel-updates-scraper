@@ -60,12 +60,12 @@ exports.retrieveHTML = function(link, retries){
  * @returns An object containing information of all the novel header information
  */
 exports.retrieveNovelHeaders = function(HTML, novel_meta, settings){
-    const { novel_name } = novel_meta;
+    const { novel_name , novel_author } = novel_meta;
     const { novel_image } = settings;
 
     let cover = retrieveNovelImage(HTML, novel_image, 3);
 
-    return { name: novel_name, cover: cover };
+    return { name: novel_name, author: novel_author, cover: cover };
 }
 
 /**
