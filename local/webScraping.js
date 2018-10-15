@@ -1,3 +1,9 @@
+/**
+ * This is the web-scraping module used to scrape data from the novel page
+ * and the group translator's page
+ * 
+ * -Zird Triztan Driz
+ */
 const request = require('request-promise');
 const cheerio = require("cheerio");
 
@@ -45,21 +51,41 @@ exports.retrieveHTML = function(link, retries){
 }
 
 /**
+ * This retrieves the novel header information like cover and title.
+ * 
+ * @param {String} HTML This is the Novel Page HTML body retrieved from the request package
+ * @param {Object} novel_meta The novel metadata object loaded from your JSON argument
+ * @param {Object} settings The settings object used as selectors for your Novel Updates scraping
+ * 
+ * @returns An object containing information of all the novel header information
+ */
+exports.retrieveNovelHeaders = function(HTML, novel_meta, settings){
+    const { novel_name } = novel_meta;
+    const { novel_image } = settings;
+
+    let cover = retrieveNovelImage(HTML, novel_image, 3);
+
+    return { name: novel_name, cover: cover };
+}
+
+/**
  * This retrieves all chapters currently available from the Novel Updates page
  * 
  * @param {String} HTML This is the Novel Page HTML body retrieved from the request package
  * @param {Object} novel_meta The novel metadata object loaded from your JSON argument
  * @param {Object} settings The settings object used as selectors for your Novel Updates scraping
+ * 
+ * @returns A promise containing the list of chapters and its contents
  */
 exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
 
     // CSS selector destructuring
 
     // Novel Metadata
-    const { novel_name, novel_link, groups_to_ignore } = novel_meta;
+    const { groups_to_ignore } = novel_meta;
 
     // Novel Updates Selectors
-    const { novel_image, novel_translator, novel_chapter, novel_table } = settings;
+    const { novel_translator, novel_chapter, novel_table } = settings;
 
     const max_page = retrieveNovelChapterTableMaxPage(HTML, novel_table.pages, 3);
 
@@ -67,6 +93,9 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
 
     pretty.logPrint("Retrieving Novel Chapters...")
     
+    // This algorithm will traverse N number of pages and R number of rows
+    // the table, so the time complexity would be on average is O(N*R)
+
     // Iterate through all the pages in the Novel Page Chapter Table
     for(page = max_page; page > 0; page--){
 
@@ -87,6 +116,20 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
             let { chapter, link } = retrieveNovelChapterLink(pageBody, novel_chapter, row, 3);
             let translator = retrieveNovelScanlationGroup(pageBody, novel_translator, row, 3);
 
+            pretty.logWrite("Retrieving ");
+            pretty.cPrint(`${chapter}`,"b");
+            // I should just implement a set rather than a list no? 
+            // Maybe next time :p
+            // -OxygenJam
+
+            let existingChapters = chapterList.map((d) => { return d["chapter"]});
+
+            // Checks if chapter already exists
+            if(existingChapters.indexOf(chapter) > 0){
+                errDict.getError(21);
+                continue;
+            }
+
             // If translator is in list of groups to ignore, skip this row
             if(translator in groups_to_ignore){
                 continue;
@@ -102,11 +145,19 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
                 return Promise.reject(translator)
             }
 
+            let groupMeta = retrieveGroupMetaData(translator);
+
+            let paragraphs = retrieveChapterData(chapterBody, groupMeta);
+
+            // Store object containing chapter and paragraphs in an array list
+            chapterList = [...chapterList, {chapter, paragraphs}];
 
         }
 
-
     }
+
+    pretty.logPrint("Finished retrieving Novel Chapters.");
+    return chapterList;
     
 }
 
@@ -178,7 +229,7 @@ function retrieveNovelChapterTableMaxPage (HTML, selector, retries){
         page_length = page_length < 0 ? 0 : page_length
 
         // Last page is usually the last anchor tag before the ->
-        let last_page = $(selector).get(page_length).text();
+        let last_page = $(selector).get(page_length);
 
         pretty.logPrint("Sucessfully retrieved chapter table max page.");
         return parseInt(last_page);
@@ -326,14 +377,32 @@ function retrieveNovelChapterLink(HTML, selector, row, retries){
 // ==================CHAPTER PAGE================== //
 
 /**
+ * Retrieves the chapter content from the group translator's site.
  * 
  * @param {String} HTML This is the HTML body of the chapter in the group's website
- * @param {Object} group_meta The meta data to be used for CSS scraping the chapter
- * @param {Number} retries This is the maximum number of retries till error gets thrown
+ * @param {Object} content The meta data to be used for CSS scraping the chapter
  * 
- * 
+ * @returns An array of text elements that will represent each paragraph in the chapter
  */
-function retrieveChapterData(HTML, group_meta, retries){
+function retrieveChapterData(HTML, { content }){
+    const $ = cheerio.load(HTML);
+    var paragraphs = [];
+
+    try{
+        $(content).each((i,elem)=>{
+
+            paragraphs = [...paragraphs, elem];
+    
+        })
+    }
+    catch(err){
+
+        errDict.getError(20);
+        paragraphs =  [...paragraphs, "An error occured in the retrieval of the chapter contents", err];
+
+        return paragraphs;
+    }
+    
 
 }
 

@@ -1,3 +1,9 @@
+/**
+ * This is the error dictionary submodule
+ * This contains all the list of error codes and its definitions
+ * 
+ * -Zird Triztan Driz
+ */
 const pretty = require('./prettyPrint.js');
 
 const errDict = {
@@ -19,7 +25,12 @@ const errDict = {
     16 : "Invalid novel JSON format, must have a novel_name and novel_link",
     17 : "groups.JSON in folder static is missing! Please find and put it back where it belongs!",
     18 : "Can't find group in the groups.JSON; provide an individual JSON file for that group, then add it to groups.JSON",
-    19 : "Tried retrieving the group's JSON data, but an error occured, either it doesn't exist or location is wrong"
+    19 : "Tried retrieving the group's JSON data, but an error occured, either it doesn't exist or location is wrong",
+    20 : "An error occured while retrieving the chapter content / paragraph from the group's site.",
+    21 : "Chapter already exists in the current list; skipping...",
+    22 : "Group translator of the chapter is in the list of groups to ignore; skipping...",
+    23 : "An error occured in the compilation of the Novel Cover Page into a PDF.",
+    24 : "An error occured in the compilation of the chapters into a PDF."
 }
 
 var exports = module.exports;
