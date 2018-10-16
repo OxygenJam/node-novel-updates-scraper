@@ -1,0 +1,14 @@
+To those groups who redirect and and split their translations into parts
+I honestly disdain you for not having a better structure in your translation.
+
+They are the special case group JSON file. JSON with special needs, call it what
+you will.
+
+=========================================
+
+hasRedirect > pairs array containing the CSS selector for the link, or redirect
+	link to the actualy chapter 
+
+content > The CSS selector for the content of the redirected webpage
+
+title > same as above but for title

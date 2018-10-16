@@ -111,7 +111,7 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
         // Max rows in table per page
         let max_rows = retrieveNovelChapterTableMaxRow(pageBody, novel_table.rows, 3);
 
-        for(row = 0; row < max_rows ; row++){
+        for(row = max_rows-1; row > 0 ; row--){
 
             let { chapter, link } = retrieveNovelChapterLink(pageBody, novel_chapter, row, 3);
             let translator = retrieveNovelScanlationGroup(pageBody, novel_translator, row, 3);
@@ -131,26 +131,35 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
             }
 
             // If translator is in list of groups to ignore, skip this row
-            if(translator in groups_to_ignore){
+            if(groups_to_ignore.indexOf(translator)!=-1){
+                pretty.logWrite("");
+                pretty.cWrite(`${translator}`, "b");
+                pretty.cPrint("in groups to ignore, skipping...", "w");
                 continue;
             }
 
-            let chapterBody = await exports.retrieveHTML(link, 3);
+            let chapterBody = await exports.retrieveHTML(link, 3).catch((err)=>{
+                err.getError(err);
+                pretty.errPrint("Skipping chapter...");
+                return null;
+            });
 
-            translator = findGroupFromExistingGroups(translator);
-
-            if(!isNaN(translator)){
-
-                // When an error occured in the function, the error code, a number, is returned
-                return Promise.reject(translator)
+            if(!chapterBody){
+                continue;
             }
 
-            let groupMeta = retrieveGroupMetaData(translator);
+            let groupMeta = findGroupFromExistingGroups(translator);
 
-            let paragraphs = retrieveChapterData(chapterBody, groupMeta);
+            if(!isNaN(groupMeta)){
+
+                // When an error occured in the function, the error code, a number, is returned
+                return Promise.reject(groupMeta)
+            }
+
+            let content = retrieveChapterData(chapterBody, groupMeta, chapter);
 
             // Store object containing chapter and paragraphs in an array list
-            chapterList = [...chapterList, {chapter, paragraphs}];
+            chapterList = [...chapterList, {chapter, content}];
             
         }
     }
@@ -302,13 +311,14 @@ function retrieveNovelChapterTableMaxRow(HTML, selector, retries){
 function retrieveNovelScanlationGroup(HTML, selector, row, retries){
     const $ = cheerio.load(HTML);
 
-    pretty.logPrint("Retrieving translator group name...");
-
     try{
 
         // Get the 2nd TD element from each TR in the table; it's usually 
         // where the translation group column is located.
         let group = $($(selector).get(row)).text();
+
+        group = group.trim();
+        group = group.replace(/[~!@#$%^&*(')_+"’]/,"");
 
         return group;
     }catch(err){
@@ -317,7 +327,7 @@ function retrieveNovelScanlationGroup(HTML, selector, row, retries){
             
             errDict.getError(8);
             errDict.customError(err.message);
-            pretty.logPrint(`Retrying to retrieve novel chapter group translation ... (Retries left: ${retries-1})`);
+            pretty.logPrint(`Retrying to retrieve novel chapter group translator name ... (Retries left: ${retries-1})`);
             return retrieveNovelScanlationGroup(HTML,selector,retries-1);
         }
         else{
@@ -382,29 +392,125 @@ function retrieveNovelChapterLink(HTML, selector, row, retries){
  * Retrieves the chapter content from the group translator's site.
  * 
  * @param {String} HTML This is the HTML body of the chapter in the group's website
- * @param {Object} content The meta data to be used for CSS scraping the chapter
+ * @param {Object} groupMeta The meta data to be used for CSS scraping the chapter
+ * @param {String} chapter This is the chapter string of the current iteration 
  * 
  * @returns An array of text elements that will represent each paragraph in the chapter
  */
-function retrieveChapterData(HTML, { content }){
+async function retrieveChapterData(HTML, groupMeta, chapter){
+
+    chapter = chapter.trim();
+    const { content, title, hasRedirect } = groupMeta;
     const $ = cheerio.load(HTML);
     var paragraphs = [];
+    var chaptertitle = ""
 
-    try{
-        $(content).each((i,elem)=>{
+    // Check if it has multiple parts and redirection
+    if(hasRedirect.parts){
 
-            paragraphs = [...paragraphs, elem];
-    
-        })
+        // Truncate to only get the chapter number
+        chapter = /c[0-9]*/.exec(chapter)[0];
+        chapter = chapter.replace("c","");
+
+        if(title == "" || title == null){
+
+            chaptertitle = `Chapter ${chapter}`;
+        }
+
+        let parts = $(hasRedirect.parts).get();
+
+        parts = parts.map((p) => { return $(p).attr("href");});
+
+        // Remove any undefined or null data
+        parts = parts.filter((p) => { return p } );
+        parts = parts.filter((p) => { return (p.indexOf(chapter)!=-1); });
+        console.log(parts);
+
+        let paragraph = "";
+        for(var p = 0; p<p.length; p++){
+            
+            try{
+
+                HTML = await exports.retrieveHTML(parts[p], 3).catch((err)=>{
+                    err.getError(err);
+                    pretty.errPrint("Skipping chapter component...");
+                    return null;
+                });
+
+                if(!HTML){
+                    continue;
+                }
+
+                let $ = cheerio.load(HTML);
+
+                if(p==0){
+
+                    chaptertitle = $(title).text();
+                }
+
+                $(content).each((i,elem)=>{
+
+                    paragraph = $(elem).text();
+
+                    if(paragraph != null || paragrap != ""){
+                        paragraphs = [...paragraphs, paragraph];
+                    }
+
+                });
+
+            }
+            catch(err){
+
+                errDict.getError(20);
+                paragraphs =  [...paragraphs, "An error occured in the retrieval of the chapter contents", err];
+        
+                return paragraphs;
+            }
+
+        }
+
+        return { title: chaptertitle, content: paragraphs };
+
     }
-    catch(err){
+    else{
 
-        errDict.getError(20);
-        paragraphs =  [...paragraphs, "An error occured in the retrieval of the chapter contents", err];
+        try{
 
-        return paragraphs;
-    }
+            
+            if(title == "" || title == null){
+
+                // Truncate to only get the chapter number
+                chapter = /c[0-9]*/.exec(chapter)[0];
+                chapter = chapter.replace("c","");
+
+                chaptertitle = `Chapter ${chapter}`;
+            }
+            else{
+
+                chaptertitle = $(title).text();
+            }
+
+            $(content).each((i,elem)=>{
     
+                let paragraph = $(elem).text();
+    
+                // Skip the paragraph if it is blank
+                if(paragraph != null || paragraph != ""){
+                    paragraphs = [...paragraphs, paragraph];
+                }
+    
+            })
+        }
+        catch(err){
+    
+            errDict.getError(20);
+            paragraphs =  [...paragraphs, "An error occured in the retrieval of the chapter contents", err];
+    
+            return paragraphs;
+        }
+
+        return { title: chaptertitle, content: paragraphs };
+    }
 
 }
 
@@ -417,8 +523,11 @@ function retrieveChapterData(HTML, { content }){
  */
 function findGroupFromExistingGroups(groupname){
 
+    pretty.logWrite("Retrieving the JSON data of ");
+    pretty.cPrint(`${groupname}`,"b");
+
     try{
-        const { groups } = require('../static/groups.json');
+        const { groups, directory } = require('../static/groups.json');
 
         const names = groups.map( (group) => { return group["name"] });
         const links = groups.map( (group) => { return group["filename"]});
@@ -428,7 +537,7 @@ function findGroupFromExistingGroups(groupname){
             return 18;
         }
 
-        return retrieveGroupMetaData(links[names.indexOf(groupname)]);
+        return retrieveGroupMetaData(links[names.indexOf(groupname)], directory);
     }
     catch(err){
 
@@ -442,14 +551,17 @@ function findGroupFromExistingGroups(groupname){
  * Finds, loads, and retrieves the group's JSON data.
  * 
  * @param {String} link This is the location of the JSON data of the group
+ * @param {String} directory This is the home directory of the group JSON files
  * 
  * @returns The JSON data of the group 
  */
-function retrieveGroupMetaData(link){
+function retrieveGroupMetaData(link, directory){
 
     try{
 
-        const meta = require(link);
+        const meta = require(directory + link + ".json");
+
+        return meta;
     }
     catch(err){
 
@@ -457,5 +569,4 @@ function retrieveGroupMetaData(link){
         return 19;
     }
 
-    return meta;
 }

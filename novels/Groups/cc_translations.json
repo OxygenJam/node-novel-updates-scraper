@@ -1,0 +1,7 @@
+{
+    "hasRedirect":{
+        "parts":".entry-content a:not(.sd-button)"
+    },
+    "content":".entry-content p",
+    "title":""
+}

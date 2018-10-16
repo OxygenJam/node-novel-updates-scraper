@@ -1,6 +1,6 @@
 {
   "name": "node-novel-updates-scraper",
-  "version": "0.1.8",
+  "version": "0.2.0",
   "description": "Compiles chapters from Novel Updates to a PDF format",
   "main": "app.js",
   "scripts": {

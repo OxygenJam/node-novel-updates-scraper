@@ -41,7 +41,7 @@ exports.PDFModule = class PDFModule{
 
         try{
 
-            this.doc.pipe(fs.createWriteStream(formatNovelName(name) + ".pdf"));
+            this.doc.pipe(fs.createWriteStream(this.dir + formatNovelName(name) + ".pdf"));
 
             pretty.logPrint("Compiling novel cover page...");
 
@@ -63,7 +63,7 @@ exports.PDFModule = class PDFModule{
                 .fillColor('black')
                 .moveDown();
 
-            this.doc.image(await bufferImageFromURL(cover))
+            this.doc.image(await bufferImageFromURL(cover), {width: 270, height: 400})
                 .moveDown();
 
                 pretty.logPrint("Nover cover page done.");
@@ -93,17 +93,20 @@ exports.PDFModule = class PDFModule{
             // and the p is your paragraph, this has a time complexity of O(c*p)
             for(var c = 0; c<chapterlist.length; c++){
 
-                let { chapter, paragraphs } = chapterlist[c];
+                let { chapter, content } = chapterlist[c];
+                let { title } = content;
 
                 this.doc.addPage()
                     .fontSize(25)
                     .text(chapter, 100, 100)
+                    .moveDown()
+                    .text(title, 100, 100)
                     .moveDown();
 
-                for(var p=0; p<paragraphs; p++){
+                for(var p=0; p<content; p++){
 
                     this.doc.fontSize(12)
-                        .text(paragraphs[p])
+                        .text(content[p]["content"])
                         .moveDown();
 
                 }

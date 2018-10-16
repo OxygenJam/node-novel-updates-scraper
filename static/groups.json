@@ -1,13 +1,37 @@
 {
     "groups":[
         {
-            "name":"",
-            "filename":""
+            "name":"Japtem",
+            "filename":"japtem"
         },
         {
-            "name":"",
-            "filename":""
+            "name":"ConformChild Translations",
+            "filename":"cc_translations"
+        },
+        {
+            "name":"Yado Inn",
+            "filename":"yado_inn"
+        },
+        {
+            "name":"Space",
+            "filename":"space"
+        },
+        {
+            "name":"Shiro Translation",
+            "filename":"shiro_translation"
+        },
+        {
+            "name":"Jynkis TLs",
+            "filename":"jynki_tls"
+        },
+        {
+            "name":"djurasico",
+            "filename":"djurasico"
+        },
+        {
+            "name":"Asian Hobbyist",
+            "filename":"asian_hobbyist"
         }
     ],
-    "directory":"./novels/Groups/"
+    "directory":"../novels/Groups/"
 }
