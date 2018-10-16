@@ -86,6 +86,8 @@ function main(){
                 novelHeader = scrape.retrieveNovelHeaders(body, novelMeta, selectors);
                 chapters = await scrape.retrieveNovelChapters(body, novelMeta, selectors);
 
+                console.log(chapters);
+
                 pretty.lineBreak();
                 // PDF Section
                 let pdf = new pdfCompile.PDFModule(output_directory);

@@ -6,5 +6,5 @@
         "pages":".digg_pagination a",
         "rows":"#myTable tbody tr"
     },
-    "output_directory":"../novels/Outputs/"
+    "output_directory":"./novels/Outputs/"
 }

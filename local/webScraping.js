@@ -156,7 +156,7 @@ exports.retrieveNovelChapters = async function (HTML, novel_meta, settings){
                 return Promise.reject(groupMeta)
             }
 
-            let content = retrieveChapterData(chapterBody, groupMeta, chapter);
+            let content = await retrieveChapterData(chapterBody, groupMeta, chapter);
 
             // Store object containing chapter and paragraphs in an array list
             chapterList = [...chapterList, {chapter, content}];
@@ -331,6 +331,7 @@ function retrieveNovelScanlationGroup(HTML, selector, row, retries){
             return retrieveNovelScanlationGroup(HTML,selector,retries-1);
         }
         else{
+
             errDict.getError(9);
             return null;
         }
@@ -424,7 +425,6 @@ async function retrieveChapterData(HTML, groupMeta, chapter){
         // Remove any undefined or null data
         parts = parts.filter((p) => { return p } );
         parts = parts.filter((p) => { return (p.indexOf(chapter)!=-1); });
-        console.log(parts);
 
         let paragraph = "";
         for(var p = 0; p<p.length; p++){

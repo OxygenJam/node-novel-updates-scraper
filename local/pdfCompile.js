@@ -63,7 +63,7 @@ exports.PDFModule = class PDFModule{
                 .fillColor('black')
                 .moveDown();
 
-            this.doc.image(await bufferImageFromURL(cover), {width: 270, height: 400})
+            this.doc.image(await bufferImageFromURL(cover), {width: 270, height: 400, align: "center"})
                 .moveDown();
 
                 pretty.logPrint("Nover cover page done.");
@@ -98,15 +98,13 @@ exports.PDFModule = class PDFModule{
 
                 this.doc.addPage()
                     .fontSize(25)
-                    .text(chapter, 100, 100)
+                    .text(`${title} (${chapter})`, 100, 100)
                     .moveDown()
-                    .text(title, 100, 100)
-                    .moveDown();
 
-                for(var p=0; p<content; p++){
+                for(var p=0; p<content["content"].length; p++){
 
                     this.doc.fontSize(12)
-                        .text(content[p]["content"])
+                        .text(content["content"][p])
                         .moveDown();
 
                 }
@@ -119,6 +117,7 @@ exports.PDFModule = class PDFModule{
             pretty.lineBreak();
         }
         catch(err){
+            console.log(chapterlist)
             errDict.customError(err);
             throw 24;
         }
